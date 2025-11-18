@@ -14,22 +14,28 @@ class WeatherstackService
             return null;
         }
 
-        $response = Http::get('http://api.weatherstack.com/current', [
-            'access_key' => $key,
-            'query'      => $city,
-            'units'      => 'm',
-        ]);
+        try {
+            $response = Http::withoutVerifying()
+                ->get('http://api.weatherstack.com/current', [
+                    'access_key' => $key,
+                    'query'      => $city,
+                    'units'      => 'm',
+                ]);
 
-        if ($response->failed()) {
+            if ($response->failed()) {
+                return null;
+            }
+
+            $json = $response->json();
+
+            if (isset($json['success']) && $json['success'] === false) {
+                return null;
+            }
+
+            return $json;
+        } catch (\Throwable $e) {
+            logger()->error('Erro ao consultar Weatherstack', ['exception' => $e->getMessage()]);
             return null;
         }
-
-        $json = $response->json();
-
-        if (isset($json['success']) && $json['success'] === false) {
-            return null;
-        }
-
-        return $json;
     }
 }

@@ -1,150 +1,358 @@
-@extends('layouts.app')
+@extends('layouts.app', ['title' => 'Weather Viewer'])
 
 @section('content')
-<div class="card">
-    <h2>Buscar cidade por CEP</h2>
-    <label>CEP</label>
-    <input type="text" id="cep" placeholder="00000-000">
-    <button type="button" id="btn-cep">Buscar CEP</button>
-</div>
+<div class="layout-grid">
 
-<div class="card">
-    <h2>Buscar previsão por cidade</h2>
-    <form method="POST" action="{{ route('weather.search') }}">
-        @csrf
-        <label>Cidade</label>
-        <input type="text" name="city" id="city" value="{{ old('city') }}">
-        <button type="submit">Buscar previsão</button>
-    </form>
-</div>
+    {{-- COLUNA ESQUERDA: BUSCA E PREVISÃO ATUAL --}}
+    <div class="column-left">
 
-@if($current)
-    @php $w = $current; @endphp
-    <div class="card">
-        <h2>Previsão atual - {{ $w['location_name'] }}</h2>
-        <p><strong>Descrição:</strong> {{ $w['description'] }}</p>
-        <p><strong>Temperatura:</strong> {{ $w['temperature'] }} °C</p>
-        <p><strong>Sensação térmica:</strong> {{ $w['feels_like'] }} °C</p>
-        <p><strong>Umidade:</strong> {{ $w['humidity'] }} %</p>
-        <p><strong>Vento:</strong> {{ $w['wind_speed'] }} km/h</p>
-        <p><strong>Data/hora local:</strong> {{ $w['localtime'] }}</p>
+        {{-- BLOCO 1 – BUSCA (CEP + CIDADE) --}}
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Busca de Localidade</div>
+                    <div class="card-subtitle">Preencha pelo CEP ou informe a cidade diretamente.</div>
+                </div>
+                <span class="pill">Passo 1</span>
+            </div>
 
-        <form method="POST" action="{{ route('weather.saveToday') }}">
-            @csrf
-            <input type="hidden" name="location_id" value="{{ $currentLocId }}">
-            <input type="hidden" name="temperature" value="{{ $w['temperature'] }}">
-            <input type="hidden" name="description" value="{{ $w['description'] }}">
-            <input type="hidden" name="feels_like" value="{{ $w['feels_like'] }}">
-            <input type="hidden" name="humidity" value="{{ $w['humidity'] }}">
-            <input type="hidden" name="wind_speed" value="{{ $w['wind_speed'] }}">
-            <button type="submit">Salvar previsão de hoje</button>
-        </form>
+            <div class="card-body">
+
+                {{-- Linha de CEP --}}
+                <div class="section-label">Via CEP</div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="cep">CEP</label>
+                        <input type="text" id="cep" placeholder="00000-000">
+                    </div>
+                    <div class="field" style="max-width: 130px;">
+                        <label>&nbsp;</label>
+                        <button type="button" id="btn-cep">
+                            Buscar CEP
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                {{-- Linha de Cidade --}}
+                <div class="section-label">Cidade</div>
+                <form id="weatherSearchForm" method="POST" action="{{ route('weather.search') }}">
+                    @csrf
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="city">Cidade</label>
+                            <input
+                                type="text"
+                                name="city"
+                                id="city"
+                                value="{{ old('city') }}"
+                                placeholder="Ex.: Chapecó, São Paulo, Rio de Janeiro..."
+                            >
+                        </div>
+                        <div class="field" style="max-width: 170px;">
+                            <label>&nbsp;</label>
+                            <button type="submit">
+                                Buscar previsão
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- BLOCO 2 – PREVISÃO ATUAL + SALVAR --}}
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Previsão atual</div>
+                    <div class="card-subtitle">Resumo da previsão retornada pela API Weatherstack.</div>
+                </div>
+                <span class="pill">Passo 2</span>
+            </div>
+
+            <div class="card-body">
+                @if($current)
+                    @php $w = $current; @endphp
+
+                    <div class="field-row" style="align-items: center; gap: 16px;">
+                        <div>
+                            <div class="section-label">Localidade</div>
+                            <div style="font-size: 18px; font-weight: 600;">
+                                {{ $w['location_name'] ?? '—' }}
+                            </div>
+                            <div class="muted">
+                                {{ $w['region'] ?? '' }} {{ $w['country'] ? '• '.$w['country'] : '' }}
+                            </div>
+                        </div>
+
+                        <div class="metric" style="max-width: 130px;">
+                            <div class="metric-label">Temperatura</div>
+                            <div class="metric-value">{{ $w['temperature'] }} °C</div>
+                            <div class="metric-sub">Sensação {{ $w['feels_like'] }} °C</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <div class="metric">
+                            <div class="metric-label">Condição</div>
+                            <div class="metric-value" style="font-size: 14px;">
+                                {{ $w['description'] ?? '—' }}
+                            </div>
+                            <div class="metric-sub">Atual</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Umidade</div>
+                            <div class="metric-value">
+                                {{ $w['humidity'] !== null ? $w['humidity'].' %' : '—' }}
+                            </div>
+                            <div class="metric-sub">Relativa</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Vento</div>
+                            <div class="metric-value">
+                                {{ $w['wind_speed'] !== null ? $w['wind_speed'].' km/h' : '—' }}
+                            </div>
+                            <div class="metric-sub">Velocidade</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Horário local</div>
+                            <div class="metric-value" style="font-size: 14px;">
+                                {{ $w['localtime'] ?? '—' }}
+                            </div>
+                            <div class="metric-sub">Zona da cidade</div>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <div class="field-row" style="align-items: center; justify-content: space-between;">
+                        <div class="muted">
+                            Salve a previsão do dia para poder usar nos comparativos.
+                        </div>
+                        <form method="POST" action="{{ route('weather.saveToday') }}">
+                            @csrf
+                            <input type="hidden" name="location_id" value="{{ $currentLocId }}">
+                            <input type="hidden" name="temperature" value="{{ $w['temperature'] }}">
+                            <input type="hidden" name="description" value="{{ $w['description'] }}">
+                            <input type="hidden" name="feels_like" value="{{ $w['feels_like'] }}">
+                            <input type="hidden" name="humidity" value="{{ $w['humidity'] }}">
+                            <input type="hidden" name="wind_speed" value="{{ $w['wind_speed'] }}">
+                            <button type="submit">
+                                Salvar previsão de hoje
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <p class="muted">
+                        Nenhuma previsão carregada. Faça uma busca por cidade para visualizar os dados atuais.
+                    </p>
+                @endif
+            </div>
+        </div>
     </div>
-@endif
 
-<div class="flex">
-    <div class="card" style="flex:1;">
-        <h2>Histórico recente</h2>
-        @if($histories->isEmpty())
-            <p>Nenhuma busca registrada.</p>
-        @else
-            <ul>
-                @foreach($histories as $h)
-                    <li>
-                        {{ $h->searched_at }} -
-                        {{ $h->location->city ?? '' }} ({{ $h->location->state ?? '' }})
-                    </li>
-                @endforeach
-            </ul>
-        @endif
-        <a href="{{ route('weather.history') }}">Ver histórico completo</a>
+    {{-- COLUNA DIREITA: HISTÓRICO + SALVOS --}}
+    <div class="column-right">
+
+        {{-- BLOCO 3 – HISTÓRICO RECENTE --}}
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Histórico de pesquisas</div>
+                    <div class="card-subtitle">Últimas cidades consultadas na API.</div>
+                </div>
+                <a class="btn-ghost btn" href="{{ route('weather.history') }}">
+                    Ver tudo
+                </a>
+            </div>
+
+            <div class="card-body">
+                @if($histories->isEmpty())
+                    <p class="muted">Ainda não há buscas registradas.</p>
+                @else
+                    <ul class="history-list">
+                        @foreach($histories as $h)
+                            <li class="history-item">
+                                <div class="history-main">
+                                    <span class="history-city">
+                                        {{ $h->location->city ?? '—' }}
+                                        @if($h->location?->state)
+                                            <span class="muted">• {{ $h->location->state }}</span>
+                                        @endif
+                                    </span>
+                                    <span class="history-meta">
+                                        {{ $h->searched_at }} • {{ $h->source }}
+                                    </span>
+                                </div>
+                                <span class="badge-dot"></span>
+                            </li>
+                        @endforeachs
+                    </ul>
+                @endif
+            </div>
+        </div>
+
+        {{-- BLOCO 4 – PREVISÕES SALVAS HOJE --}}
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Previsões salvas hoje</div>
+                    <div class="card-subtitle">Registros persistidos para comparação.</div>
+                </div>
+                <span class="pill">{{ $savedToday->count() }} registro(s)</span>
+            </div>
+
+            <div class="card-body">
+                @if($savedToday->isEmpty())
+                    <p class="muted">Nenhuma previsão salva hoje. Busque uma cidade e clique em “Salvar previsão de hoje”.</p>
+                @else
+                    <div class="chip-list">
+                        @foreach($savedToday as $rec)
+                            <div class="chip">
+                                {{ $rec->location->city ?? '—' }}
+                                @if($rec->temperature !== null)
+                                    • {{ $rec->temperature }} °C
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 
-    <div class="card" style="flex:1;">
-        <h2>Previsões salvas hoje</h2>
-        @if($savedToday->isEmpty())
-            <p>Nenhuma previsão salva hoje.</p>
-        @else
-            <table>
-                <tr>
-                    <th>Cidade</th>
-                    <th>Temp</th>
-                    <th>Descrição</th>
-                </tr>
-                @foreach($savedToday as $rec)
-                    <tr>
-                        <td>{{ $rec->location->city ?? '' }}</td>
-                        <td>{{ $rec->temperature }} °C</td>
-                        <td>{{ $rec->description }}</td>
-                    </tr>
-                @endforeach
-            </table>
-        @endif
+    {{-- BLOCO 5 – COMPARAÇÃO EM COLUNAS (FAIXA INFERIOR FULL WIDTH) --}}
+    <div class="compare-full">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Comparar localidades</div>
+                    <div class="card-subtitle">Selecione duas cidades com previsão salva para comparar lado a lado.</div>
+                </div>
+                <span class="pill">Passo 3</span>
+            </div>
+
+            <div class="card-body">
+                <form method="POST" action="{{ route('weather.compare') }}">
+                    @csrf
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="location_a">Local A</label>
+                            <select name="location_a" id="location_a">
+                                @foreach($locations as $loc)
+                                    <option value="{{ $loc->id }}">{{ $loc->city }} - {{ $loc->state }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="location_b">Local B</label>
+                            <select name="location_b" id="location_b">
+                                @foreach($locations as $loc)
+                                    <option value="{{ $loc->id }}">{{ $loc->city }} - {{ $loc->state }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="field" style="max-width: 140px;">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn">
+                                Comparar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="section-divider"></div>
+
+                @if($comparison)
+                    <div class="compare-grid">
+                        <div></div>
+                        <div class="compare-header">Local A</div>
+                        <div class="compare-header">Local B</div>
+
+                        {{-- Linha: Cidade --}}
+                        <div class="compare-label">Cidade</div>
+                        <div class="compare-cell">
+                            {{ optional($comparison['left']->location ?? null)->city ?? '—' }}
+                        </div>
+                        <div class="compare-cell">
+                            {{ optional($comparison['right']->location ?? null)->city ?? '—' }}
+                        </div>
+
+                        {{-- Linha: Temperatura --}}
+                        <div class="compare-label">Temperatura</div>
+                        <div class="compare-cell">
+                            {{ $comparison['left']->temperature ?? '—' }} @if($comparison['left']) °C @endif
+                        </div>
+                        <div class="compare-cell">
+                            {{ $comparison['right']->temperature ?? '—' }} @if($comparison['right']) °C @endif
+                        </div>
+
+                        {{-- Linha: Sensação --}}
+                        <div class="compare-label">Sensação térmica</div>
+                        <div class="compare-cell">
+                            {{ $comparison['left']->feels_like ?? '—' }} @if($comparison['left']) °C @endif
+                        </div>
+                        <div class="compare-cell">
+                            {{ $comparison['right']->feels_like ?? '—' }} @if($comparison['right']) °C @endif
+                        </div>
+
+                        {{-- Linha: Umidade --}}
+                        <div class="compare-label">Umidade</div>
+                        <div class="compare-cell">
+                            {{ $comparison['left']->humidity ?? '—' }} @if($comparison['left']) % @endif
+                        </div>
+                        <div class="compare-cell">
+                            {{ $comparison['right']->humidity ?? '—' }} @if($comparison['right']) % @endif
+                        </div>
+
+                        {{-- Linha: Vento --}}
+                        <div class="compare-label">Vento</div>
+                        <div class="compare-cell">
+                            {{ $comparison['left']->wind_speed ?? '—' }} @if($comparison['left']) km/h @endif
+                        </div>
+                        <div class="compare-cell">
+                            {{ $comparison['right']->wind_speed ?? '—' }} @if($comparison['right']) km/h @endif
+                        </div>
+                    </div>
+                @else
+                    <p class="muted">
+                        Nenhuma comparação realizada ainda. Escolha duas localidades e clique em “Comparar”.
+                    </p>
+                @endif
+            </div>
+        </div>
     </div>
-</div>
 
-<div class="card">
-    <h2>Comparar duas localidades (previsão salva de hoje)</h2>
-    <form method="POST" action="{{ route('weather.compare') }}">
-        @csrf
-        <label>Local A</label>
-        <select name="location_a">
-            @foreach($locations as $loc)
-                <option value="{{ $loc->id }}">{{ $loc->city }} - {{ $loc->state }}</option>
-            @endforeach
-        </select>
-
-        <label>Local B</label>
-        <select name="location_b">
-            @foreach($locations as $loc)
-                <option value="{{ $loc->id }}">{{ $loc->city }} - {{ $loc->state }}</option>
-            @endforeach
-        </select>
-
-        <button type="submit">Comparar</button>
-    </form>
-
-    @if($comparison)
-        <h3>Resultado</h3>
-        <table>
-            <tr>
-                <th></th>
-                <th>Local A</th>
-                <th>Local B</th>
-            </tr>
-            <tr>
-                <td>Cidade</td>
-                <td>{{ optional($comparison['left']->location ?? null)->city }}</td>
-                <td>{{ optional($comparison['right']->location ?? null)->city }}</td>
-            </tr>
-            <tr>
-                <td>Temperatura</td>
-                <td>{{ $comparison['left']->temperature ?? '-' }}</td>
-                <td>{{ $comparison['right']->temperature ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td>Umidade</td>
-                <td>{{ $comparison['left']->humidity ?? '-' }}</td>
-                <td>{{ $comparison['right']->humidity ?? '-' }}</td>
-            </tr>
-        </table>
-    @endif
 </div>
 
 <script>
     $.ajaxSetup({
-        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+        headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')}
     });
 
     $('#btn-cep').on('click', function () {
         const cep = $('#cep').val();
-        $.post('{{ route('weather.fillCity') }}', {cep: cep})
+
+        if (!cep) {
+            alert('Informe um CEP.');
+            return;
+        }
+
+        $.post('{{ route('weather.fillCity') }}', { cep })
             .done(function (data) {
+                // Preenche a cidade com o retorno do ViaCEP
                 $('#city').val(data.city);
+
+                // Já dispara a busca de previsão
+                document.getElementById('weatherSearchForm').submit();
             })
             .fail(function () {
-                alert('CEP não encontrado');
+                alert('CEP não encontrado ou inválido.');
             });
     });
 </script>
+
 @endsection

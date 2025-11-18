@@ -14,12 +14,24 @@ class ViaCepService
             return null;
         }
 
-        $response = Http::get("https://viacep.com.br/ws/{$cep}/json/");
+        try {
+            $response = Http::withoutVerifying()
+                ->get("https://viacep.com.br/ws/{$cep}/json/");
 
-        if ($response->failed() || $response->json('erro')) {
+            if ($response->failed()) {
+                return null;
+            }
+
+            $json = $response->json();
+
+            if (isset($json['erro']) && $json['erro'] === true) {
+                return null;
+            }
+
+            return $json;
+        } catch (\Throwable $e) {
+            logger()->error('Erro ao consultar ViaCEP', ['exception' => $e->getMessage()]);
             return null;
         }
-
-        return $response->json();
     }
 }
