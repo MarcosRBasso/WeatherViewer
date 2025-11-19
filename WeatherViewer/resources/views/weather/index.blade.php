@@ -3,10 +3,10 @@
 @section('content')
 <div class="layout-grid">
 
-    {{-- COLUNA ESQUERDA: BUSCA E PREVISÃO ATUAL --}}
+    {{-- BUSCA && PREVISÃO ATUAL --}}
     <div class="column-left">
 
-        {{-- BLOCO 1 – BUSCA (CEP + CIDADE) --}}
+        {{-- BUSCA (CEP || CIDADE) --}}
         <div class="card">
             <div class="card-header">
                 <div>
@@ -16,10 +16,8 @@
                 <span class="pill">Passo 1</span>
             </div>
 
-            <div class="card-body">
-
-                {{-- Linha de CEP --}}
-                <div class="section-label">Via CEP</div>
+            <div class="card-body"> 
+                {{-- CEP --}}
                 <div class="field-row">
                     <div class="field">
                         <label for="cep">CEP</label>
@@ -35,7 +33,7 @@
 
                 <div class="section-divider"></div>
 
-                {{-- Linha de Cidade --}}
+                {{-- Cidade --}}
                 <div class="section-label">Cidade</div>
                 <form id="weatherSearchForm" method="POST" action="{{ route('weather.search') }}">
                     @csrf
@@ -61,12 +59,12 @@
             </div>
         </div>
 
-        {{-- BLOCO 2 – PREVISÃO ATUAL + SALVAR --}}
+        {{-- PREVISÃO ATUAL && SALVAR --}}
         <div class="card">
             <div class="card-header">
                 <div>
                     <div class="card-title">Previsão atual</div>
-                    <div class="card-subtitle">Resumo da previsão retornada pela API Weatherstack.</div>
+                    <div class="card-subtitle">Previsão por Weatherstack.</div>
                 </div>
                 <span class="pill">Passo 2</span>
             </div>
@@ -152,15 +150,15 @@
         </div>
     </div>
 
-    {{-- COLUNA DIREITA: HISTÓRICO + SALVOS --}}
+    {{-- HISTÓRICO && SALVOS --}}
     <div class="column-right">
 
-        {{-- BLOCO 3 – HISTÓRICO RECENTE --}}
+        {{-- HISTÓRICO RECENTE --}}
         <div class="card">
             <div class="card-header">
                 <div>
                     <div class="card-title">Histórico de pesquisas</div>
-                    <div class="card-subtitle">Últimas cidades consultadas na API.</div>
+                    <div class="card-subtitle">Últimas cidades consultadas.</div>
                 </div>
                 <a class="btn-ghost btn" href="{{ route('weather.history') }}">
                     Ver tudo
@@ -187,13 +185,13 @@
                                 </div>
                                 <span class="badge-dot"></span>
                             </li>
-                        @endforeachs
+                        @endforeach
                     </ul>
                 @endif
             </div>
         </div>
 
-        {{-- BLOCO 4 – PREVISÕES SALVAS HOJE --}}
+        {{-- PREVISÕES SALVAS --}}
         <div class="card">
             <div class="card-header">
                 <div>
@@ -222,7 +220,7 @@
         </div>
     </div>
 
-    {{-- BLOCO 5 – COMPARAÇÃO EM COLUNAS (FAIXA INFERIOR FULL WIDTH) --}}
+    {{-- COMPARAÇÃO --}}
     <div class="compare-full">
         <div class="card">
             <div class="card-header">
@@ -234,24 +232,43 @@
             </div>
 
             <div class="card-body">
+                @php
+                    $comparisonData = $comparison ?? [];
+                    $selectedA = old('location_a') ?? ($comparisonData['lastA'] ?? null);
+                    $selectedB = old('location_b') ?? ($comparisonData['lastB'] ?? null);
+                @endphp
                 <form method="POST" action="{{ route('weather.compare') }}">
                     @csrf
                     <div class="field-row">
                         <div class="field">
-                            <label for="location_a">Local A</label>
+                            <label for="location_a">Região A</label>
                             <select name="location_a" id="location_a">
+                                <option value="">Selecione...</option>
+
                                 @foreach($locations as $loc)
-                                    <option value="{{ $loc->id }}">{{ $loc->city }} - {{ $loc->state }}</option>
+                                    <option
+                                        value="{{ $loc->id }}"
+                                        {{ $selectedA && (string)$selectedA === (string)$loc->id ? 'selected' : '' }}
+                                    >
+                                        {{ $loc->city }} - {{ $loc->state }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
 
                         <div class="field">
-                            <label for="location_b">Local B</label>
+                            <label for="location_b">Região B</label>
                             <select name="location_b" id="location_b">
-                                @foreach($locations as $loc)
-                                    <option value="{{ $loc->id }}">{{ $loc->city }} - {{ $loc->state }}</option>
-                                @endforeach
+                                <option value="">Selecione...</option>
+
+                            @foreach($locations as $loc)
+                                <option
+                                    value="{{ $loc->id }}"
+                                    {{ $selectedB && (string)$selectedB === (string)$loc->id ? 'selected' : '' }}
+                                >
+                                    {{ $loc->city }} - {{ $loc->state }}
+                                </option>
+                            @endforeach
                             </select>
                         </div>
 
@@ -269,8 +286,14 @@
                 @if($comparison)
                     <div class="compare-grid">
                         <div></div>
-                        <div class="compare-header">Local A</div>
-                        <div class="compare-header">Local B</div>
+                        <div class="compare-header">
+                            {{ optional($comparison['left']->location ?? null)->city ?? '—' }} 
+                            -  {{ optional($comparison['left']->location ?? null)->state ?? '' }}
+                        </div>
+                        <div class="compare-header">
+                            {{ optional($comparison['right']->location ?? null)->city ?? '—' }} 
+                            - {{ optional($comparison['left']->location ?? null)->state ?? '' }}
+                        </div>
 
                         {{-- Linha: Cidade --}}
                         <div class="compare-label">Cidade</div>
@@ -343,10 +366,7 @@
 
         $.post('{{ route('weather.fillCity') }}', { cep })
             .done(function (data) {
-                // Preenche a cidade com o retorno do ViaCEP
                 $('#city').val(data.city);
-
-                // Já dispara a busca de previsão
                 document.getElementById('weatherSearchForm').submit();
             })
             .fail(function () {

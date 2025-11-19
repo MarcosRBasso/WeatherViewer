@@ -132,22 +132,31 @@ class WeatherController extends Controller
             'location_b' => 'required|integer|exists:locations,id|different:location_a',
         ]);
 
-        $locA = Location::findOrFail($request->location_a);
-        $locB = Location::findOrFail($request->location_b);
+        $lastA = $request->location_a;
+        $lastB = $request->location_b;
 
-        $weatherA = $locA->weatherRecords()
+        $locA = Location::findOrFail($lastA);
+        $locB = Location::findOrFail($lastB);
+
+        // Busca previsão SALVA HOJE para cada local
+        $weatherA = WeatherRecord::with('location')
+            ->where('location_id', $locA->id)
             ->whereDate('date', Carbon::today())
-            ->latest()
+            ->latest('created_at')
             ->first();
 
-        $weatherB = $locB->weatherRecords()
+        $weatherB = WeatherRecord::with('location')
+            ->where('location_id', $locB->id)
             ->whereDate('date', Carbon::today())
-            ->latest()
+            ->latest('created_at')
             ->first();
 
         return back()->with('comparison', [
-            'left'  => $weatherA,
-            'right' => $weatherB,
+            'left'   => $weatherA,
+            'right'  => $weatherB,
+            'lastA'  => $lastA,
+            'lastB'  => $lastB,
         ]);
     }
+
 }
