@@ -138,7 +138,6 @@ class WeatherController extends Controller
         $locA = Location::findOrFail($lastA);
         $locB = Location::findOrFail($lastB);
 
-        // Busca previsão SALVA HOJE para cada local
         $weatherA = WeatherRecord::with('location')
             ->where('location_id', $locA->id)
             ->whereDate('date', Carbon::today())
