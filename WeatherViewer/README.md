@@ -1,276 +1,245 @@
-📘 WeatherViewer — Sistema de Consulta e Comparação de Previsão do Tempo
+### 🌤️ Weather Viewer ###
 
-Aplicação desenvolvida em Laravel, seguindo padrão MVP (Model–View–Presenter) e integrando duas APIs externas:
+Sistema de consulta, salvamento e comparação de previsões do tempo
 
-ViaCEP → para identificar cidade/estado a partir do CEP
+---
 
-Weatherstack → para consultar a previsão do tempo atual
+### 📖 Sobre o Projeto ###
 
-O sistema permite:
+O Weather Viewer é uma aplicação web em Laravel criada para:
 
-✔ Buscar previsão por cidade
-✔ Buscar previsão por CEP
-✔ Exibir dados detalhados da previsão
-✔ Salvar a previsão do dia
-✔ Listar buscas recentes
-✔ Comparar duas regiões lado a lado
+Pesquisar previsões do tempo por cidade ou CEP
 
-📁 Estrutura do Projeto
-app/
- ├── Http/Controllers/WeatherController.php
- ├── Models/
- │    ├── Location.php
- │    ├── SearchHistory.php
- │    └── WeatherRecord.php
- ├── Services/
- │    ├── WeatherstackService.php
- │    └── ViaCepService.php
- └── Presenters/
-      └── WeatherPresenter.php
+Consultar automaticamente o ViaCEP
 
-resources/
- └── views/
-      └── weather/
-           ├── index.blade.php
-           └── history.blade.php
+Exibir a previsão atual da API Weatherstack
 
-🚀 Instalação & Execução
-1️⃣ Clonar o repositório
-git clone https://github.com/seuusuario/weatherviewer.git
-cd weatherviewer
+Salvar a previsão diária para histórico
 
-2️⃣ Instalar dependências
-composer install
+Comparar duas localidades lado a lado
 
-3️⃣ Configurar o .env
+É um projeto ideal para estudo prático de:
 
-Defina banco e a chave da API Weatherstack:
+✔️ Laravel
+<br><br>
+✔️ Consumo de APIs externas
+<br><br>
+✔️ Padrões Service + Presenter
+<br><br>
+✔️ UX/UI com Blade + CSS fluido
+<br><br>
+✔️ Relacionamentos entre tabelas
+<br><br>
+✔️ Sessões + persistência de dados
 
-APP_KEY=base64:xxxxx
-WEATHERSTACK_KEY=SUA_CHAVE_WEATHERSTACK
+---
 
-DB_DATABASE=weatherviewer
-DB_USERNAME=root
-DB_PASSWORD=123
+### ✨ Funcionalidades ###
+### 🔍 Busca ###
 
-4️⃣ Criar tabelas
-php artisan migrate
+CEP → Cidade (automático)
 
-5️⃣ Rodar o servidor
-php artisan serve
+O usuário informa um CEP
 
-🧠 Como o Sistema Funciona
-▶ 1. Busca por CEP
+O sistema consulta o ViaCEP
 
-Arquivo: WeatherController@fillCityByCep()
-Serviço: ViaCepService
+Preenche automaticamente o campo Cidade
 
-Fluxo:
+Realiza a busca da previsão automaticamente
 
-Usuário digita o CEP
+Cidade → Previsão
 
-Front envia AJAX → /weather/fill-city
+O usuário pode digitar qualquer cidade
 
-ViaCEP retorna:
+A API Weatherstack retorna:
 
-cidade
+Temperatura
 
-estado
+Sensação térmica
 
-Front preenche automaticamente o campo cidade
+Humidade
 
-O sistema já dispara a busca por previsão
+Vento
 
-Onde alimentar:
-Nada precisa ser cadastrado. O ViaCEP retorna automaticamente.
+Condição (ex.: "Parcialmente nublado")
 
-▶ 2. Busca por Cidade
+Horário local
 
-Arquivo: WeatherController@search()
-Serviço: WeatherstackService
-Presenter: WeatherPresenter
+---
 
-Fluxo:
+### 🌦️ Previsão Atual ###
 
-Cidade enviada via POST
+Após a busca, o sistema exibe um card com:
 
-Weatherstack retorna dados da previsão atual
+Informação	Exemplo
+Localidade	Chapecó • SC
+Temperatura	22°C
+Sensação térmica	21°C
+Umidade	65%
+Vento	10 km/h
+Condição	Parcialmente nublado
 
-Presenter converte resposta para um formato padronizado
+Os dados são formatados pelo WeatherPresenter.
 
-O sistema cria/atualiza um registro em locations
+---
 
-Registra também no search_histories
+### 💾 Salvar Previsão do Dia ###
 
-Onde alimentar:
-Você só digita o nome da cidade no campo de busca.
+Com apenas um clique:
 
-🗂 Models e Suas Funções
-📍 Location
+A previsão atual é armazenada em weather_records
 
-Armazena cidades pesquisadas:
+Apenas dados do dia atual são considerados
 
-protected $fillable = ['city', 'state', 'country', 'cep'];
+Permite comparações mais tarde
 
-📚 SearchHistory
+---
 
-Armazena pesquisas realizadas:
+### 🕓 Histórico de Pesquisas ###
 
-cidade
+O sistema armazena cada busca em search_histories com:
 
-data
+Data
 
-snapshot da previsão retornada
+Cidade
 
-🌡 WeatherRecord
+Estado
 
-Armazena previsões salvas do dia para comparação:
+Fonte
 
-temperatura
+Snapshot completo (JSON)
 
-umidade
+No dashboard são exibidas as últimas 10 pesquisas.
 
-vento
+---
 
-descrição do clima
+### 📊 Comparação de Cidades ###
 
-Campos são salvos em JSON também (raw_response).
+> O painel permite selecionar:
 
-🧩 Serviços
-🌐 ViaCepService
+Região A
 
-Consulta:
+Região B
 
-https://viacep.com.br/ws/{cep}/json/
+O sistema compara lado a lado:
 
+| **Métrica**        | **Local A** | **Local B** |
+|-------------------|-------------|-------------|
+| Cidade            | ✔️          | ✔️          |
+| Temperatura       | ✔️          | ✔️          |
+| Sensação térmica  | ✔️          | ✔️          |
+| Umidade           | ✔️          | ✔️          |
+| Vento             | ✔️          | ✔️          |
 
-Retorna cidade e estado.
 
-☁ WeatherstackService
+Os selects mantêm a última escolha do usuário.
 
-Consulta:
+---
 
-http://api.weatherstack.com/current?access_key=KEY&query=CIDADE
+### 🧩 Arquitetura ###
 
+<img width="763" height="330" alt="image" src="https://github.com/user-attachments/assets/56d3f85b-d317-4c8f-9202-faa33d62f57e" />
 
-Retorna dados detalhados:
+---
 
-temperatura
+### 🔧 Como Funciona Cada Componente 
+WeatherController ###
 
-sensação
+Controla toda a lógica do fluxo:
 
-vento
+    index() → Dashboard
 
-localtime
+    search() → Busca previsão
 
-descrição do clima
+    fillCityByCep() → Converte CEP
 
-🎨 Views (Front-end)
-🏠 index.blade.php
+    saveToday() → Salva registro
 
-Divide a tela em 3 blocos principais:
+    compare() → Compara duas cidades
 
-1. Busca (CEP e Cidade)
+### Services ###
 
-CEP → autocomplete
+Serviços externos especializados:
 
-Cidade → busca direta via API
-
-2. Previsão Atual
-
-Exibe:
-
-cidade / estado
-
-temperatura
-
-sensação
-
-umidade
-
-vento
-
-horário local
-
-botão Salvar previsão de hoje
-
-3. Histórico
-
-Mostra as últimas pesquisas realizadas.
-
-4. Previsões Salvas Hoje
-
-Lista chips com cidades e temperaturas.
-
-5. Comparação
-
-O usuário escolhe Região A e Região B.
-O sistema exibe dados lado a lado.
-
-🔁 Fluxo Completo do Sistema
-CEP → ViaCEP → Preenche cidade → (opcionalmente busca previsão)
-
-Cidade → Weatherstack → Formata → Mostra previsão atual
-
-Usuário clica "Salvar previsão do dia" → WeatherRecord
-
-Tela carrega:
- - Histórico
- - Previsões salvas hoje
- - Seletores de comparação
-
-Usuário compara → tamanhos token
- - Busca registros salvos HOJE
- - Exibe lado a lado
-
-🧪 Como alimentar as informações de teste
-✔ Para ter dados na comparação
-
-O sistema só compara previsões salvas HOJE, então:
-
-Busque cidade A
-
-Clique Salvar previsão de hoje
-
-Busque cidade B
-
-Clique Salvar previsão de hoje
-
-Agora selecione A e B na comparação
-
-🧩 MVP – Separation of Concerns
-
-Model
-Responsável pelos dados no banco e relacionamentos.
-
-View
-Arquivos Blade exibem o layout + dados formatados.
-
+Serviço	Responsabilidade
+ViaCepService	Buscar cidade pelo CEP
+WeatherstackService	Buscar previsão do tempo
 Presenter
-Converte formatos de API para padrão interno do sistema.
-(Ex.: renomeia campos, normaliza dados, etc.)
 
-Services
-Cada API externa tem uma classe específica especialista.
+Organiza e padroniza os dados retornados pela API
 
-Controller
-Orquestra tudo:
+Evita lógica dentro das views
 
-recebe requisições
+### Models ###
 
-chama serviços
+Relacionamentos:
 
-salva histórico
+Location → possui muitos SearchHistory e WeatherRecord
 
-envia dados para as views
+SearchHistory → pertence a Location
 
-📌 Conclusão
+WeatherRecord → pertence a Location
 
-Este projeto demonstra:
+---
 
-✓ Integração com APIs reais
-✓ Padrão MVP
-✓ Migrations, Models, Controllers
-✓ Blade responsivo (mobile-first)
-✓ Comparação dinâmica de dados
-✓ Uso de sessões, validação e persistência
+###🗄️ Banco de Dados
+
+### Tabelas principais:
+
+locations
+
+Armazena cidades consultadas.
+
+search_histories
+
+Guarda o histórico de buscas.
+
+weather_records
+
+Registro das previsões salvas no dia.
+
+---
+
+### ⚙️ Instalação ###
+
+### 1. Clone o repositório ###
+
+   <img width="500" height="35" alt="image" src="https://github.com/user-attachments/assets/2edf1dba-7ad2-4406-930c-ba56e512476d" />
+
+### 2. Instale dependências ###
+
+   <img width="500" height="50" alt="image" src="https://github.com/user-attachments/assets/bd70596d-298f-499c-9dab-23404dada362" />
+
+### 3. Configure o .env
+
+   <img width="500" height="142" alt="image" src="https://github.com/user-attachments/assets/ee330be2-64e1-41c6-888f-40cf8ff715a7" />
+
+### 4. Gere a key
+
+   <img width="500" height="35" alt="image" src="https://github.com/user-attachments/assets/a6922c15-1c00-4e96-a147-4766b360fc3f" />
+
+### 5. Execute as migrations
+
+   <img width="502" height="35" alt="image" src="https://github.com/user-attachments/assets/16666ff1-5817-4621-ba28-c1a2ba2d77f5" />
+
+### 6. Inicie o servidor
+
+   <img width="500" height="35" alt="image" src="https://github.com/user-attachments/assets/f8f00433-c79d-4d31-a63e-cf2b9a3d5f0e" />
+
+---
+
+### 🎨 Front-end e UX ###
+
+Layout responsivo
+
+Sistema de colunas fluido
+
+Cards organizados
+
+Comparação ocupa 100% da largura no desktop
+
+Inputs e selects adaptados para mobile
+
+Auto-submit ao buscar por CEP
+
+---
