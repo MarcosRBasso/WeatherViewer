@@ -1,59 +1,276 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+📘 WeatherViewer — Sistema de Consulta e Comparação de Previsão do Tempo
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicação desenvolvida em Laravel, seguindo padrão MVP (Model–View–Presenter) e integrando duas APIs externas:
 
-## About Laravel
+ViaCEP → para identificar cidade/estado a partir do CEP
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Weatherstack → para consultar a previsão do tempo atual
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+O sistema permite:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+✔ Buscar previsão por cidade
+✔ Buscar previsão por CEP
+✔ Exibir dados detalhados da previsão
+✔ Salvar a previsão do dia
+✔ Listar buscas recentes
+✔ Comparar duas regiões lado a lado
 
-## Learning Laravel
+📁 Estrutura do Projeto
+app/
+ ├── Http/Controllers/WeatherController.php
+ ├── Models/
+ │    ├── Location.php
+ │    ├── SearchHistory.php
+ │    └── WeatherRecord.php
+ ├── Services/
+ │    ├── WeatherstackService.php
+ │    └── ViaCepService.php
+ └── Presenters/
+      └── WeatherPresenter.php
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+resources/
+ └── views/
+      └── weather/
+           ├── index.blade.php
+           └── history.blade.php
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+🚀 Instalação & Execução
+1️⃣ Clonar o repositório
+git clone https://github.com/seuusuario/weatherviewer.git
+cd weatherviewer
 
-## Laravel Sponsors
+2️⃣ Instalar dependências
+composer install
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3️⃣ Configurar o .env
 
-### Premium Partners
+Defina banco e a chave da API Weatherstack:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+APP_KEY=base64:xxxxx
+WEATHERSTACK_KEY=SUA_CHAVE_WEATHERSTACK
 
-## Contributing
+DB_DATABASE=weatherviewer
+DB_USERNAME=root
+DB_PASSWORD=123
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4️⃣ Criar tabelas
+php artisan migrate
 
-## Code of Conduct
+5️⃣ Rodar o servidor
+php artisan serve
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+🧠 Como o Sistema Funciona
+▶ 1. Busca por CEP
 
-## Security Vulnerabilities
+Arquivo: WeatherController@fillCityByCep()
+Serviço: ViaCepService
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Fluxo:
 
-## License
+Usuário digita o CEP
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Front envia AJAX → /weather/fill-city
+
+ViaCEP retorna:
+
+cidade
+
+estado
+
+Front preenche automaticamente o campo cidade
+
+O sistema já dispara a busca por previsão
+
+Onde alimentar:
+Nada precisa ser cadastrado. O ViaCEP retorna automaticamente.
+
+▶ 2. Busca por Cidade
+
+Arquivo: WeatherController@search()
+Serviço: WeatherstackService
+Presenter: WeatherPresenter
+
+Fluxo:
+
+Cidade enviada via POST
+
+Weatherstack retorna dados da previsão atual
+
+Presenter converte resposta para um formato padronizado
+
+O sistema cria/atualiza um registro em locations
+
+Registra também no search_histories
+
+Onde alimentar:
+Você só digita o nome da cidade no campo de busca.
+
+🗂 Models e Suas Funções
+📍 Location
+
+Armazena cidades pesquisadas:
+
+protected $fillable = ['city', 'state', 'country', 'cep'];
+
+📚 SearchHistory
+
+Armazena pesquisas realizadas:
+
+cidade
+
+data
+
+snapshot da previsão retornada
+
+🌡 WeatherRecord
+
+Armazena previsões salvas do dia para comparação:
+
+temperatura
+
+umidade
+
+vento
+
+descrição do clima
+
+Campos são salvos em JSON também (raw_response).
+
+🧩 Serviços
+🌐 ViaCepService
+
+Consulta:
+
+https://viacep.com.br/ws/{cep}/json/
+
+
+Retorna cidade e estado.
+
+☁ WeatherstackService
+
+Consulta:
+
+http://api.weatherstack.com/current?access_key=KEY&query=CIDADE
+
+
+Retorna dados detalhados:
+
+temperatura
+
+sensação
+
+vento
+
+localtime
+
+descrição do clima
+
+🎨 Views (Front-end)
+🏠 index.blade.php
+
+Divide a tela em 3 blocos principais:
+
+1. Busca (CEP e Cidade)
+
+CEP → autocomplete
+
+Cidade → busca direta via API
+
+2. Previsão Atual
+
+Exibe:
+
+cidade / estado
+
+temperatura
+
+sensação
+
+umidade
+
+vento
+
+horário local
+
+botão Salvar previsão de hoje
+
+3. Histórico
+
+Mostra as últimas pesquisas realizadas.
+
+4. Previsões Salvas Hoje
+
+Lista chips com cidades e temperaturas.
+
+5. Comparação
+
+O usuário escolhe Região A e Região B.
+O sistema exibe dados lado a lado.
+
+🔁 Fluxo Completo do Sistema
+CEP → ViaCEP → Preenche cidade → (opcionalmente busca previsão)
+
+Cidade → Weatherstack → Formata → Mostra previsão atual
+
+Usuário clica "Salvar previsão do dia" → WeatherRecord
+
+Tela carrega:
+ - Histórico
+ - Previsões salvas hoje
+ - Seletores de comparação
+
+Usuário compara → tamanhos token
+ - Busca registros salvos HOJE
+ - Exibe lado a lado
+
+🧪 Como alimentar as informações de teste
+✔ Para ter dados na comparação
+
+O sistema só compara previsões salvas HOJE, então:
+
+Busque cidade A
+
+Clique Salvar previsão de hoje
+
+Busque cidade B
+
+Clique Salvar previsão de hoje
+
+Agora selecione A e B na comparação
+
+🧩 MVP – Separation of Concerns
+
+Model
+Responsável pelos dados no banco e relacionamentos.
+
+View
+Arquivos Blade exibem o layout + dados formatados.
+
+Presenter
+Converte formatos de API para padrão interno do sistema.
+(Ex.: renomeia campos, normaliza dados, etc.)
+
+Services
+Cada API externa tem uma classe específica especialista.
+
+Controller
+Orquestra tudo:
+
+recebe requisições
+
+chama serviços
+
+salva histórico
+
+envia dados para as views
+
+📌 Conclusão
+
+Este projeto demonstra:
+
+✓ Integração com APIs reais
+✓ Padrão MVP
+✓ Migrations, Models, Controllers
+✓ Blade responsivo (mobile-first)
+✓ Comparação dinâmica de dados
+✓ Uso de sessões, validação e persistência
