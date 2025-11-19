@@ -3,6 +3,12 @@
 Sistema de consulta, salvamento e comparação de previsões do tempo
 
 ---
+### 🖼️ Preview ###
+
+![Weather Viewer preview](https://github.com/user-attachments/assets/d1bf826e-1915-4f25-a001-51c23fc52a60)
+
+
+---
 
 ### 📖 Sobre o Projeto ###
 
