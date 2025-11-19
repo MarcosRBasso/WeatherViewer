@@ -1,59 +1,245 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+### 🌤️ Weather Viewer ###
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de consulta, salvamento e comparação de previsões do tempo
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 📖 Sobre o Projeto ###
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+O Weather Viewer é uma aplicação web em Laravel criada para:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Pesquisar previsões do tempo por cidade ou CEP
 
-## Learning Laravel
+Consultar automaticamente o ViaCEP
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Exibir a previsão atual da API Weatherstack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Salvar a previsão diária para histórico
 
-## Laravel Sponsors
+Comparar duas localidades lado a lado
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+É um projeto ideal para estudo prático de:
 
-### Premium Partners
+✔️ Laravel
+<br><br>
+✔️ Consumo de APIs externas
+<br><br>
+✔️ Padrões Service + Presenter
+<br><br>
+✔️ UX/UI com Blade + CSS fluido
+<br><br>
+✔️ Relacionamentos entre tabelas
+<br><br>
+✔️ Sessões + persistência de dados
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+### ✨ Funcionalidades ###
+### 🔍 Busca ###
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+CEP → Cidade (automático)
 
-## Code of Conduct
+O usuário informa um CEP
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+O sistema consulta o ViaCEP
 
-## Security Vulnerabilities
+Preenche automaticamente o campo Cidade
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Realiza a busca da previsão automaticamente
 
-## License
+Cidade → Previsão
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+O usuário pode digitar qualquer cidade
+
+A API Weatherstack retorna:
+
+Temperatura
+
+Sensação térmica
+
+Humidade
+
+Vento
+
+Condição (ex.: "Parcialmente nublado")
+
+Horário local
+
+---
+
+### 🌦️ Previsão Atual ###
+
+Após a busca, o sistema exibe um card com:
+
+Informação	Exemplo
+Localidade	Chapecó • SC
+Temperatura	22°C
+Sensação térmica	21°C
+Umidade	65%
+Vento	10 km/h
+Condição	Parcialmente nublado
+
+Os dados são formatados pelo WeatherPresenter.
+
+---
+
+### 💾 Salvar Previsão do Dia ###
+
+Com apenas um clique:
+
+A previsão atual é armazenada em weather_records
+
+Apenas dados do dia atual são considerados
+
+Permite comparações mais tarde
+
+---
+
+### 🕓 Histórico de Pesquisas ###
+
+O sistema armazena cada busca em search_histories com:
+
+Data
+
+Cidade
+
+Estado
+
+Fonte
+
+Snapshot completo (JSON)
+
+No dashboard são exibidas as últimas 10 pesquisas.
+
+---
+
+### 📊 Comparação de Cidades ###
+
+> O painel permite selecionar:
+
+Região A
+
+Região B
+
+O sistema compara lado a lado:
+
+| **Métrica**        | **Local A** | **Local B** |
+|-------------------|-------------|-------------|
+| Cidade            | ✔️          | ✔️          |
+| Temperatura       | ✔️          | ✔️          |
+| Sensação térmica  | ✔️          | ✔️          |
+| Umidade           | ✔️          | ✔️          |
+| Vento             | ✔️          | ✔️          |
+
+
+Os selects mantêm a última escolha do usuário.
+
+---
+
+### 🧩 Arquitetura ###
+
+<img width="763" height="330" alt="image" src="https://github.com/user-attachments/assets/56d3f85b-d317-4c8f-9202-faa33d62f57e" />
+
+---
+
+### 🔧 Como Funciona Cada Componente 
+WeatherController ###
+
+Controla toda a lógica do fluxo:
+
+    index() → Dashboard
+
+    search() → Busca previsão
+
+    fillCityByCep() → Converte CEP
+
+    saveToday() → Salva registro
+
+    compare() → Compara duas cidades
+
+### Services ###
+
+Serviços externos especializados:
+
+Serviço	Responsabilidade
+ViaCepService	Buscar cidade pelo CEP
+WeatherstackService	Buscar previsão do tempo
+Presenter
+
+Organiza e padroniza os dados retornados pela API
+
+Evita lógica dentro das views
+
+### Models ###
+
+Relacionamentos:
+
+Location → possui muitos SearchHistory e WeatherRecord
+
+SearchHistory → pertence a Location
+
+WeatherRecord → pertence a Location
+
+---
+
+###🗄️ Banco de Dados
+
+### Tabelas principais:
+
+locations
+
+Armazena cidades consultadas.
+
+search_histories
+
+Guarda o histórico de buscas.
+
+weather_records
+
+Registro das previsões salvas no dia.
+
+---
+
+### ⚙️ Instalação ###
+
+### 1. Clone o repositório ###
+
+   <img width="500" height="35" alt="image" src="https://github.com/user-attachments/assets/2edf1dba-7ad2-4406-930c-ba56e512476d" />
+
+### 2. Instale dependências ###
+
+   <img width="500" height="50" alt="image" src="https://github.com/user-attachments/assets/bd70596d-298f-499c-9dab-23404dada362" />
+
+### 3. Configure o .env
+
+   <img width="500" height="142" alt="image" src="https://github.com/user-attachments/assets/ee330be2-64e1-41c6-888f-40cf8ff715a7" />
+
+### 4. Gere a key
+
+   <img width="500" height="35" alt="image" src="https://github.com/user-attachments/assets/a6922c15-1c00-4e96-a147-4766b360fc3f" />
+
+### 5. Execute as migrations
+
+   <img width="502" height="35" alt="image" src="https://github.com/user-attachments/assets/16666ff1-5817-4621-ba28-c1a2ba2d77f5" />
+
+### 6. Inicie o servidor
+
+   <img width="500" height="35" alt="image" src="https://github.com/user-attachments/assets/f8f00433-c79d-4d31-a63e-cf2b9a3d5f0e" />
+
+---
+
+### 🎨 Front-end e UX ###
+
+Layout responsivo
+
+Sistema de colunas fluido
+
+Cards organizados
+
+Comparação ocupa 100% da largura no desktop
+
+Inputs e selects adaptados para mobile
+
+Auto-submit ao buscar por CEP
+
+---
